@@ -187,7 +187,7 @@ class ProductsController extends VoyagerBaseController
 
         if (!$request->ajax()) {
             $requestNew = $request;
-            $requestNew['price'] = $request->price;
+            $requestNew['price'] = $request->price * 100;
 
             $this->insertUpdateData($requestNew, $slug, $dataType->editRows, $data);
 
@@ -281,7 +281,7 @@ class ProductsController extends VoyagerBaseController
 
         if (!$request->ajax()) {
             $requestNew = $request;
-            $requestNew['price'] = $request->price;
+            $requestNew['price'] = $request->price * 100;
 
             $data = $this->insertUpdateData($requestNew, $slug, $dataType->addRows, new $dataType->model_name());
 

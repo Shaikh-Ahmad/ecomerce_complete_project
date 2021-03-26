@@ -80,17 +80,15 @@ class CheckoutController extends Controller
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
             Charge::create([
-                'amount' => getNumbers()->get('newTotal') / 100,
-                // "amount" =>  Intval(implode(explode(',', Cart::total()))) *100 ,
+                // 'amount' => getNumbers()->get('newTotal') / 100,
+                "amount" =>  Intval(implode(explode(',', getNumbers()->get('newTotal') ))) ,
                 "currency" => "usd",
                 "source" => $request->stripeToken,
                 "description" => "Test payment from Ahmed",
                 "metadata" =>[
-                    "order_id" => "6735",
                     'contents' => $contents,
                     'quantity' => Cart::instance('default')->count(),
-                    'discount' => collect(session()->get('coupon'))->toJson(),
-                    // "Adress" => $request->input('adress')
+                    'discount' => collect(session()->get('coupon'))->toJson(),   
                 ]
             ]);
 

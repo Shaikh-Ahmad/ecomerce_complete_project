@@ -5,7 +5,8 @@ use Carbon\Carbon;
 function presentPrice($price)
 {
     // return money_format('$%i', $price / 100);
-    return '$' . number_format($price, 2, '.', ',');
+    // return '$' . number_format($price, 2, '.', ',');
+    return '$' . Intval(implode(explode(',', $price))) / 100;
 }
 
 function presentDate($date)
@@ -34,6 +35,7 @@ function getNumbers()
     }
     $newTax = $newSubtotal * $tax;
     $newTotal = $newSubtotal * (1 + $tax);
+    
 
     return collect([
         'tax' => $tax,

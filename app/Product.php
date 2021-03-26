@@ -43,7 +43,8 @@ class Product extends Model
     {
 
         // return money_format('$%i', $this->price / 100);
-        return '$' . number_format($this->price, 2, '.', ',');
+        // return '$' . number_format($this->price, 2);
+        return '$' . Intval(implode(explode(',', $this->price))) / 100;
     }
 
     public function scopeMightAlsoLike($query)
