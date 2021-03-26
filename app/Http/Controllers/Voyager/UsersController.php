@@ -32,7 +32,7 @@ class UsersController extends VoyagerBaseController
             unset($request['role_id']);
 
             return back()->with([
-                'message' => 'Sorry, this action is disabled in the demo.',
+                'message' => 'Sorry, this action is disabled for u only super admin can perform this.',
                 'alert-type' => 'error',
             ]);
         }

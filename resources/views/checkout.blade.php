@@ -2,16 +2,7 @@
 
 @section('title', 'Checkout')
 
-@section('extra-css')
-    <style>
-        .mt-32 {
-            margin-top: 32px;
-        }
-    </style>
 
-    <script src="https://js.stripe.com/v3/"></script>
-
-@endsection
 
 @section('content')
 
@@ -186,98 +177,184 @@
 
 @endsection
 
+@section('extra-css')
+    <style>
+        .mt-32 {
+            margin-top: 32px;
+        }
+    </style>
+
+@endsection
+
 @section('extra-js')
     <script src="https://js.braintreegateway.com/web/dropin/1.13.0/js/dropin.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+<script type="text/javascript">
+  
+                                        // CARD UI
+      var stripe = Stripe('pk_test_51IOOuQKD8xrNAjBlDAizcEeXIl88sUCUpUdNSHhNvb1jP66pG4jHIC2DpLwcXMEawNUzvSenxPoiwJta91NvLeWQ00abnh2fNI');
+      var elements = stripe.elements();
+  
+      var card = elements.create('card', {hidePostalCode : true});
+  
+      // Add an instance of the card UI component into the `card-element` <div>
+      card.mount('#card-element');
+  
+                                        //Securly Collect card Detail   
+  
+      function stripeTokenHandler(token) {
+      // Insert the token ID into the form so it gets submitted to the server
+      var form = document.getElementById('payment-form');
+      var hiddenInput = document.createElement('input');
+      hiddenInput.setAttribute('type', 'hidden');
+      hiddenInput.setAttribute('name', 'stripeToken');
+      hiddenInput.setAttribute('value', token.id);
+      form.appendChild(hiddenInput);
+      // Submit the form
+      form.submit();
+      }
+      console.log(document.getElementById('city').value);
 
-    <script>
-        (function(){
-            // Create a Stripe client
-            var stripe = Stripe('{{ config('services.stripe.key') }}');
-
-            // Create an instance of Elements
-            var elements = stripe.elements();
-
-            // Custom styling can be passed to options when creating an Element.
-            // (Note that this demo uses a wider set of styles than the guide below.)
-            var style = {
-              base: {
-                color: '#32325d',
-                lineHeight: '18px',
-                fontFamily: '"Roboto", Helvetica Neue", Helvetica, sans-serif',
-                fontSmoothing: 'antialiased',
-                fontSize: '16px',
-                '::placeholder': {
-                  color: '#aab7c4'
-                }
-              },
-              invalid: {
-                color: '#fa755a',
-                iconColor: '#fa755a'
-              }
-            };
-
-            // Create an instance of the card Element
-            var card = elements.create('card', {
-                style: style,
-                hidePostalCode: true
-            });
-
-            // Add an instance of the card Element into the `card-element` <div>
-            card.mount('#card-element');
-
-            // Handle real-time validation errors from the card Element.
-            card.addEventListener('change', function(event) {
-              var displayError = document.getElementById('card-errors');
-              if (event.error) {
-                displayError.textContent = event.error.message;
-              } else {
-                displayError.textContent = '';
-              }
-            });
-
-            // Handle form submission
-            var form = document.getElementById('payment-form');
-            form.addEventListener('submit', function(event) {
-              event.preventDefault();
-
-              // Disable the submit button to prevent repeated clicks
-              document.getElementById('complete-order').disabled = true;
-
-              var options = {
-                name: document.getElementById('name_on_card').value,
+        // //   self-code collecting neccesary data
+        var options = {
+                name: document.getElementById("name_on_card").value,
                 address_line1: document.getElementById('address').value,
                 address_city: document.getElementById('city').value,
                 address_state: document.getElementById('province').value,
                 address_zip: document.getElementById('postalcode').value
-              }
-
-              stripe.createToken(card, options).then(function(result) {
-                if (result.error) {
-                  // Inform the user if there was an error
-                  var errorElement = document.getElementById('card-errors');
-                  errorElement.textContent = result.error.message;
-
-                  // Enable the submit button
-                  document.getElementById('complete-order').disabled = false;
-                } else {
-                  // Send the token to your server
-                  stripeTokenHandler(result.token);
-                }
-              });
-            });
-
-            function stripeTokenHandler(token) {
-              // Insert the token ID into the form so it gets submitted to the server
-              var form = document.getElementById('payment-form');
-              var hiddenInput = document.createElement('input');
-              hiddenInput.setAttribute('type', 'hidden');
-              hiddenInput.setAttribute('name', 'stripeToken');
-              hiddenInput.setAttribute('value', token.id);
-              form.appendChild(hiddenInput);
-
-              // Submit the form
-              form.submit();
             }
+
+        
+
+            // $(document).on('click', '.c', function() {
+            //     alert(document.getElementById('name_on_card').value);
+            //     console.log(document.getElementById('name_on_card').value)
+            // });
+  
+      function createToken() {
+      stripe.createToken(card, options).then(function(result) {
+          if (result.error) {
+          // Inform the user if there was an error
+          var errorElement = document.getElementById('card-errors');
+          errorElement.textContent = result.error.message;
+          } else {
+          // Send the token to your server
+          stripeTokenHandler(result.token);
+          }
+      });
+  
+      };
+      // Create a token when the form is submitted.
+      var form = document.getElementById('payment-form');
+      form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      createToken();
+      });
+  
+                                      // Handel Event and Error
+  
+      card.on('change', function(event) {
+      var displayError = document.getElementById('card-errors');
+      if (event.error) {
+          displayError.textContent = event.error.message;
+      } else {
+          displayError.textContent = '';
+      }
+      });
+
+
+</script>
+
+    <script>
+
+        // (function(){
+        //     // Create a Stripe client
+        //     var stripe = Stripe('{{ config('services.stripe.key') }}');
+
+        //     // Create an instance of Elements
+        //     var elements = stripe.elements();
+
+        //     // Custom styling can be passed to options when creating an Element.
+        //     // (Note that this demo uses a wider set of styles than the guide below.)
+        //     var style = {
+        //       base: {
+        //         color: '#32325d',
+        //         lineHeight: '18px',
+        //         fontFamily: '"Roboto", Helvetica Neue", Helvetica, sans-serif',
+        //         fontSmoothing: 'antialiased',
+        //         fontSize: '16px',
+        //         '::placeholder': {
+        //           color: '#aab7c4'
+        //         }
+        //       },
+        //       invalid: {
+        //         color: '#fa755a',
+        //         iconColor: '#fa755a'
+        //       }
+        //     };
+
+        //     // Create an instance of the card Element
+        //     var card = elements.create('card', {
+        //         style: style,
+        //         hidePostalCode: true
+        //     });
+
+        //     // Add an instance of the card Element into the `card-element` <div>
+        //     card.mount('#card-element');
+
+        //     // Handle real-time validation errors from the card Element.
+        //     card.addEventListener('change', function(event) {
+        //       var displayError = document.getElementById('card-errors');
+        //       if (event.error) {
+        //         displayError.textContent = event.error.message;
+        //       } else {
+        //         displayError.textContent = '';
+        //       }
+        //     });
+
+        //     // Handle form submission
+        //     var form = document.getElementById('payment-form');
+        //     form.addEventListener('submit', function(event) {
+        //       event.preventDefault();
+
+        //       // Disable the submit button to prevent repeated clicks
+        //       document.getElementById('complete-order').disabled = true;
+
+        //       var options = {
+        //         name: document.getElementById('name_on_card').value,
+        //         address_line1: document.getElementById('address').value,
+        //         address_city: document.getElementById('city').value,
+        //         address_state: document.getElementById('province').value,
+        //         address_zip: document.getElementById('postalcode').value
+        //       }
+
+        //       stripe.createToken(card, options).then(function(result) {
+        //         if (result.error) {
+        //           // Inform the user if there was an error
+        //           var errorElement = document.getElementById('card-errors');
+        //           errorElement.textContent = result.error.message;
+
+        //           // Enable the submit button
+        //           document.getElementById('complete-order').disabled = false;
+        //         } else {
+        //           // Send the token to your server
+        //           stripeTokenHandler(result.token);
+        //         }
+        //       });
+        //     });
+
+        //     function stripeTokenHandler(token) {
+        //       // Insert the token ID into the form so it gets submitted to the server
+        //       var form = document.getElementById('payment-form');
+        //       var hiddenInput = document.createElement('input');
+        //       hiddenInput.setAttribute('type', 'hidden');
+        //       hiddenInput.setAttribute('name', 'stripeToken');
+        //       hiddenInput.setAttribute('value', token.id);
+        //       form.appendChild(hiddenInput);
+
+        //       // Submit the form
+        //       form.submit();
+        //     }
 
             // PayPal Stuff
             var form = document.querySelector('#paypal-payment-form');

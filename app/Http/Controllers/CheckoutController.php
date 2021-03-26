@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Order;
+use Exception;
 use App\Product;
+use Stripe\Charge;
+use Stripe\Stripe;
 use App\OrderProduct;
+// use Cartalyst\Stripe\Laravel\Facades\Stripe;
+// use Cartalyst\Stripe\Exception\CardErrorException;
 use App\Mail\OrderPlaced;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\CheckoutRequest;
 use Gloudemans\Shoppingcart\Facades\Cart;
-use Cartalyst\Stripe\Laravel\Facades\Stripe;
-use Cartalyst\Stripe\Exception\CardErrorException;
+
 
 class CheckoutController extends Controller
 {
@@ -69,23 +73,43 @@ class CheckoutController extends Controller
         $contents = Cart::content()->map(function ($item) {
             return $item->model->slug.', '.$item->qty;
         })->values()->toJson();
+        
+    
 
         try {
-            $charge = Stripe::charges()->create([
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            Charge::create([
                 'amount' => getNumbers()->get('newTotal') / 100,
-                'currency' => 'CAD',
-                'source' => $request->stripeToken,
-                'description' => 'Order',
-                'receipt_email' => $request->email,
-                'metadata' => [
+                // "amount" =>  Intval(implode(explode(',', Cart::total()))) *100 ,
+                "currency" => "usd",
+                "source" => $request->stripeToken,
+                "description" => "Test payment from Ahmed",
+                "metadata" =>[
+                    "order_id" => "6735",
                     'contents' => $contents,
                     'quantity' => Cart::instance('default')->count(),
                     'discount' => collect(session()->get('coupon'))->toJson(),
-                ],
+                    // "Adress" => $request->input('adress')
+                ]
             ]);
 
+            // $charge = Stripe::charges()->create([
+            //     'amount' => getNumbers()->get('newTotal') / 100,
+            //     'currency' => 'CAD',
+            //     'source' => $request->stripeToken,
+            //     'description' => 'Order',
+            //     'receipt_email' => $request->email,
+            //     'metadata' => [
+            //         'contents' => $contents,
+            //         'quantity' => Cart::instance('default')->count(),
+            //         'discount' => collect(session()->get('coupon'))->toJson(),
+            //     ],
+            // ]);
+
             $order = $this->addToOrdersTables($request, null);
-            Mail::send(new OrderPlaced($order));
+            
+            // Mail::send(new OrderPlaced($order));
 
             // decrease the quantities of all the products in the cart
             $this->decreaseQuantities();
@@ -94,10 +118,16 @@ class CheckoutController extends Controller
             session()->forget('coupon');
 
             return redirect()->route('confirmation.index')->with('success_message', 'Thank you! Your payment has been successfully accepted!');
-        } catch (CardErrorException $e) {
+        }
+          catch (Exception  $e) {
             $this->addToOrdersTables($request, $e->getMessage());
             return back()->withErrors('Error! ' . $e->getMessage());
         }
+
+        //  catch (CardErrorException $e) {
+        //     $this->addToOrdersTables($request, $e->getMessage());
+        //     return back()->withErrors('Error! ' . $e->getMessage());
+        // }
     }
 
     /**
